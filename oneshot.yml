@@ -15,7 +15,7 @@
     ################################################################    
     # This was a massive learning curve on how to degregister results
     # when you are looping through a set of host vars
-    - name: run show commands {{inventory_hostname}}
+    - name: run first check on {{inventory_hostname}}
       ios_command:
         commands: "{{ hostvars[item]['command'] }}"
         provider: "{{ cli }}"
@@ -33,7 +33,7 @@
 
     # This is a test to run the meta handler to close playbook
     # if the result it true then we need to exit gracefully
-    - name: debug2
+    - name: debug the check and exit the playbook if necessary
       debug:
         msg: "We have a match: {{item.stdout}} "
         # var: "{{show.stdout}}"
