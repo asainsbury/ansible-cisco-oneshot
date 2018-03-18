@@ -17,3 +17,7 @@ Workflow:
  - Backup after the change is complete.
 
 Most of the above will need to be broken out into roles, but that will come at a later date.
+
+## Example of how to run
+This play is work in progress, so not all of the features are complete.
+ansible-playbook oneshot.yml -vv --tags "show"
