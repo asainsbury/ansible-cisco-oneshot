@@ -1,0 +1,127 @@
+---
+- hosts: ios
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: "vagrant"
+      password: "vagrant"
+
+  tasks:
+  #   - name: show run on the interface {{inventory_hostname}}
+  #     ios_command:
+  #       commands: 
+  #         - "{{ hostvars[item]['command'] }}"
+  #       provider: "{{ cli }}"
+
+  #     with_items: "{{ groups['ios'] }}"
+  #     register: result
+  #     tags:
+  #       - show_int
+
+
+
+    # - name: debug
+    #   debug:
+    #     var: "result"
+
+    # - name: debug2
+    #   debug:
+    #     msg: "Test: {{ result.stdout }}"
+
+
+
+    # - debug:
+    #     msg: "Check msg"
+        
+  
+
+
+    # - name: set a description
+    #   when: result.find('World') != -1
+
+    #   ios_config:
+    #     provider: "{{ cli }}"
+    #     lines:
+    #       - "{{ hostvars[item]['description'] }}"
+
+    #     parents: "{{ hostvars[item]['interface'] }}"
+    #     save_when: modified
+
+
+    #   register: "set_interface"
+
+    #   with_items: "{{ groups['ios'] }}"
+    #   tags:
+    #     - description
+
+    # - name: run show commands {{inventory_hostname}}
+    #   ios_command:
+    #     commands: "show run interface gigabitEthernet1"
+    #     provider: "{{ cli }}"
+      
+    #   register: show
+
+    #   tags:
+    #     - show
+
+    # - name: debug2
+    #   debug:
+    #     msg: "Test: {{ show.stdout_lines}}"
+
+    # This was a massive learning curve on how to degregister results
+    # when you are looping through a set of host vars
+    - name: run show commands {{inventory_hostname}}
+      ios_command:
+        commands: "{{ hostvars[item]['command'] }}"
+        provider: "{{ cli }}"
+      
+      with_items: "{{ groups['ios'] }}"
+      register: show
+
+    - set_fact:
+        test: "{{ hostvars[item]['description'] }}"
+      with_items: "{{ groups['ios'] }}"
+
+      tags:
+        - show
+
+    - debug:
+        msg: "Check msg {{test}}"
+
+    - name: debug2
+      debug:
+        msg: "We have a match: {{item.stdout}} "
+        # var: "{{show.stdout}}"
+        # var: "{{item.stdout_lines}}"
+
+      with_items: "{{ show.results }}"
+      when: 
+        # - '"Hello World" in "{{item.stdout_lines}}"' 
+        - '"{{test}}" in "{{item.stdout_lines}}"' 
+        # // this works!!!
+        # - '"Hello World" not in show.results'
+
+
+        # "redis_is_installed.stdout.find('v=' ~ redis_version) == -1"
+        # - "('Hello World' in item.stdout_lines)"
+        # - item.stdout_lines != "Hello World"
+        # - show.results.find("World") != -1
+
+         # - item.stdout.find("World") != -1
+        # - '"Hello World" not in item.show'
+        # - '"Hello World" in show.results'
+        # - show.stdout.find("World") != -1
+        # - item.stdout_lines.find("World") == 1
+        # - "'interface GigabitEthernet1' in item.stdout"
+
+      # - shell: echo "motd contains word hi"
+      #   when: "'hi' in motd_result.stdout"
+      # # when: '"Hello World" not in {{item.stdout}}'
+      # when: '"*World*" in results'
+      # when: "{{item.stdout}}" == "World"
+      # when: '"World" in result.stdout'
+      # when: "{{item.stdout.find}}"("World") != -1
+      # when: result.find("World") != -1
+      # when: "{{item.stdout}}".find("World") != -1
