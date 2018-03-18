@@ -20,7 +20,7 @@ Most of the above will need to be broken out into roles, but that will come at a
 
 ## Example of how to run
 This play is work in progress, so not all of the features are complete.
-<<<<<<< HEAD
+
 ansible-playbook oneshot.yml -vv --tags "show"
 
 ## CSV File
@@ -54,7 +54,4 @@ Test the SERNO check, as I'm just paranoid.
 Also check the hostname matches.
 Jinja2 template to build out the inventory file.
 Roles after that
-=======
 
-ansible-playbook oneshot.yml -vv --tags "show"
->>>>>>> ed5bb30eefcebf09961baa20ba80865bd865372f
