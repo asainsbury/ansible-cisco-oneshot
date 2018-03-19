@@ -17,7 +17,7 @@
     # when you are looping through a set of host vars
     - name: run first check on {{inventory_hostname}}
       ios_command:
-        commands: "{{ hostvars[item]['command'] }}"
+        commands: "{{ hostvars[item]['check1'] }}"
         provider: "{{ cli }}"
       
       with_items: "{{ groups['ios'] }}"
@@ -34,17 +34,26 @@
     # This is a test to run the meta handler to close playbook
     # if the result it true then we need to exit gracefully
     - name: debug the check and exit the playbook if necessary
-      debug:
-        msg: "We have a match: {{item.stdout}} "
+      set_fact:
+        test1_result: "1"
+      #   msg: "We have a match: Need to exit "
         # var: "{{show.stdout}}"
         # var: "{{item.stdout_lines}}"
+
+        # meta: end_play
 
       with_items: "{{ show.results }}"
       when: 
         - '"{{test1}}" in "{{item.stdout_lines}}"' 
-        # // this works!!!
-        # - '"Hello World" not in show.results'
-        
+
+    - name: debug
+      debug:
+        var: test1_result
+
+    - meta: end_play
+      when: test1_result is defined
+
+       
 
     ################################################################
     # Push the config here
@@ -53,23 +62,24 @@
     # As we need to be able to supply a list with a parent.
     # Else we just do line1, line2 etc, which might be easier
 
-    # - name: set a description
-    #   when: result.find('World') != -1
+    - name: set a description
+      ios_config:
+        provider: "{{ cli }}"
+        lines:
+          - "{{ hostvars[item]['description'] }}"
 
-    #   ios_config:
-    #     provider: "{{ cli }}"
-    #     lines:
-    #       - "{{ hostvars[item]['description'] }}"
-
-    #     parents: "{{ hostvars[item]['interface'] }}"
-    #     save_when: modified
+        parents: "{{ hostvars[item]['interface'] }}"
+        save_when: modified
 
 
-    #   register: "set_interface"
+      register: "set_interface"
 
-    #   with_items: "{{ groups['ios'] }}"
-    #   tags:
-    #     - description
+      with_items: "{{ groups['ios'] }}"
+      tags:
+        - description
+
+      when:
+        - test1_result is not defined
 
     ################################################################
     # backup the config here
