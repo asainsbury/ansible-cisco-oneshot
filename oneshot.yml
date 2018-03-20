@@ -9,66 +9,135 @@
       password: "vagrant"
 
   tasks:
+    # to do
+    # Aim to make this from csv >> jinja2
+    # host;ansible_ssh_host;os;serno;check1;check2;check3;parent;lines;
+    # csr1;192.168.178.85;IOS;9HGPHTOFJIH;"show inventory";"show run | i hostname";show run interface gigabitEthernet1";"interface gigabitEthernet4";["description Hello World","ip address 1.1.1.1 255.255.255.0"]
+    # - combine checks into a list to run together
 
     ################################################################
     # Run tests first - any issues we exit the play
     ################################################################    
     # This was a massive learning curve on how to degregister results
     # when you are looping through a set of host vars
-    - name: run first check on {{inventory_hostname}}
+
+    # might be able to stack the checks into a list, then just 
+    # have the one lot of results to run set facts over??
+
+    
+
+    - name: Search for the existance of the code {{inventory_hostname}}
       ios_command:
         commands: "{{ hostvars[item]['check1'] }}"
         provider: "{{ cli }}"
       
       with_items: "{{ groups['ios'] }}"
-      register: show
+      register: show_test_a
+
+    - name: Grab the serial number of {{inventory_hostname}}
+      ios_command:
+        commands: "{{ hostvars[item]['check2'] }}"
+        provider: "{{ cli }}"
+      
+      with_items: "{{ groups['ios'] }}"
+      register: show_test_b
 
     - set_fact:
-        test1: "{{ hostvars[item]['description'] }}"
+        config: "{{ hostvars[item]['line1'] }}"
       with_items: "{{ groups['ios'] }}"
 
-      tags:
-        - show
+    - set_fact:
+        serno: "{{ hostvars[item]['serno'] }}"
+      with_items: "{{ groups['ios'] }}"
 
-
-    # This is a test to run the meta handler to close playbook
-    # if the result it true then we need to exit gracefully
-    - name: debug the check and exit the playbook if necessary
-      set_fact:
-        test1_result: "1"
-      #   msg: "We have a match: Need to exit "
-        # var: "{{show.stdout}}"
-        # var: "{{item.stdout_lines}}"
-
-        # meta: end_play
-
-      with_items: "{{ show.results }}"
-      when: 
-        - '"{{test1}}" in "{{item.stdout_lines}}"' 
+    # # Just debug the result from the fact to see what happened
+    - name: debug
+      debug:
+        msg: "Debug output from test a  {{show_test_a.results[0].stdout_lines}}"
 
     - name: debug
       debug:
-        var: test1_result
+        msg: "Debug output from test b  {{show_test_b.results[0].stdout_lines}}"
 
+
+    - name: debug
+      debug:
+        var: config
+
+    - name: debug
+      debug:
+        var: serno
+
+    # - name: Set the fact1 for a match on exists
+    #   set_fact:
+    #     test1_result: "1"
+
+    #   with_items: "{{ show_test1.results }}"
+    #   when: 
+    #     - '"{{line1}}" in "{{item.stdout_lines}}"' 
+
+    - name: Set the fact on matching the code we want to push
+      set_fact:
+        config_result: "1"
+
+      when: 
+        # This deliminator in jinja is killing me curly brackets example works
+        - (config in show_test_a.results[0].stdout_lines)
+        # - '"{{config}}" in "{{show_test_a.results[0].stdout_lines}}"'
+        # - ("Hello World" in show_test_a.results[0].stdout_lines)
+        # - show_test_a.results[0].find('Hello') != -1
+      # with_indexed_items:
+      #   - "{{show_test_a.results[0].stdout_lines}}"
+
+
+    - name: Set the fact on matching serial number
+      set_fact:
+        serno_result: "1"
+     
+      when: 
+        - serno in show_test_b.results[0].stdout_lines
+        # - '"{{serno}}" in "{{show_test_b.results[0].stdout_lines}}"'
+        # - item.results.find('not installed') != -1
+      # with_indexed_items:
+      #   - "{{show_test_b.results[0].stdout_lines}}"
+
+
+    # Just debug the result from the fact to see what happened
+    - name: debug
+      debug:
+        var: config_result
+
+    - name: debug
+      debug:
+        var: serno_result
+
+    # # This is a nice meta handler, which needs a msg to say 
+    # # we encountered an issue and exited.
+    # # At this point we can stack up the exit conditions with the logic
+    # # in the When statement
     - meta: end_play
       when: test1_result is defined
 
+    - meta: end_play
+      when: test2_result is not defined
+
        
 
-    ################################################################
-    # Push the config here
-    ################################################################   
-    # Need to work out how to loop over the lines in the host vars.
-    # As we need to be able to supply a list with a parent.
-    # Else we just do line1, line2 etc, which might be easier
+    # ################################################################
+    # # Push the config here
+    # ################################################################   
+    # # Need to work out how to loop over the lines in the host vars.
+    # # As we need to be able to supply a list with a parent.
+    # # Else we just do line1, line2 etc, which might be easier
 
-    - name: set a description
+    - name: Push a set of commands {{ hostvars[item]['line1'] }} {{ hostvars[item]['line2'] }}
       ios_config:
         provider: "{{ cli }}"
         lines:
-          - "{{ hostvars[item]['description'] }}"
+          - "{{ hostvars[item]['line1'] }}"
+          - "{{ hostvars[item]['line2'] }}"
 
-        parents: "{{ hostvars[item]['interface'] }}"
+        parents: "{{ hostvars[item]['parent'] }}"
         save_when: modified
 
 
@@ -81,8 +150,8 @@
       when:
         - test1_result is not defined
 
-    ################################################################
-    # backup the config here
-    ################################################################ 
+    # ################################################################
+    # # backup the config here
+    # ################################################################ 
 
 

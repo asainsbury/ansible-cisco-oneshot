@@ -1,2 +1,2 @@
 [ios]
-csr1 ansible_ssh_host=192.168.178.88 interface="interface gigabitEthernet1" description="description Hello World" check1="show run interface gigabitEthernet1"
+csr1 ansible_ssh_host=192.168.178.88 serno="9HGPHTOFJIH" parent="interface gigabitEthernet1" line1="description Hello World" line2="do show clock" check1="show run interface gigabitEthernet1" check2="show inventory" 
