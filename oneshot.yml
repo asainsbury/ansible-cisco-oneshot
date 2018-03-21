@@ -9,7 +9,7 @@
       password: "vagrant"
 
   tasks:
-    
+
     # ----
     # TODO
     # ----
@@ -24,7 +24,12 @@
 
     ################################################################
     # Run tests first - any issues we exit the play
-    ################################################################    
+    ################################################################ 
+    # Might be able to stack the commands
+    # and just register all the commands together?
+    # thats also on the todo list
+    # so if you have 3 or 4 lines, you need to be able to loop over them
+    # in the one command action
 
     - name: Search for the existance of the code {{inventory_hostname}}
       ios_command:
@@ -127,8 +132,7 @@
         parents: "{{ hostvars[item]['parent'] }}"
         save_when: modified
 
-
-      register: "set_interface"
+      register: "set_config"
 
       with_items: "{{ groups['ios'] }}"
       tags:
@@ -137,7 +141,14 @@
       # Sort of a redundant check, but I will leave it in
       when:
         - test1_result is not defined
+        
+    ################################################################
+    # Push the config here
+    ################################################################  
 
+    - name: debug
+      debug:
+        var: set_config
     # # ################################################################
     # # # backup the config here
     # # ################################################################ 
