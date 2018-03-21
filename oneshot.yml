@@ -9,6 +9,7 @@
       password: "vagrant"
 
   tasks:
+    
     # ----
     # TODO
     # ----
@@ -56,6 +57,7 @@
     ################################################################
     # Just debug the result from the fact to see what happened
     ################################################################
+
     - name: debug
       debug:
         msg: "Debug output from test a  {{show_test_a.results[0]}}"
@@ -76,6 +78,7 @@
     ################################################################
     # Set the results of the above actions, to test with meta handlers
     ################################################################
+
     - name: First test the config
       set_fact: 
         test1_result: "1"
@@ -89,9 +92,11 @@
 
       when: (serno in item)
       with_items: "{{show_test_b.results[0].stdout}}"
+
     ################################################################
     # More debugging
     ################################################################
+
     - name: debug
       debug:
         var: test1_result
@@ -100,7 +105,6 @@
       debug:
         var: test2_result
   
-
     ################################################################
     # At this point we can stack up the exit conditions with the logic
     # in the When statement
