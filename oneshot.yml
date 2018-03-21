@@ -9,22 +9,21 @@
       password: "vagrant"
 
   tasks:
-    # to do
-    # Aim to make this from csv >> jinja2
-    # host;ansible_ssh_host;os;serno;check1;check2;check3;parent;lines;
-    # csr1;192.168.178.85;IOS;9HGPHTOFJIH;"show inventory";"show run | i hostname";show run interface gigabitEthernet1";"interface gigabitEthernet4";["description Hello World","ip address 1.1.1.1 255.255.255.0"]
-    # - combine checks into a list to run together
+    # ----
+    # TODO
+    # ----
+    # Aim to make the inventory file from jinja2
+    # Taken from extra vars, not run everytime
+    # Add a debug option, again from extra vars and add to all debugs
+    # Add tags to all tasks
+    # Add option to backup before a change
+    # Add option to backup after a change
+    # Make it NXOS or IOS/XE agnostic 
+    # Turn into a role at this point
 
     ################################################################
     # Run tests first - any issues we exit the play
     ################################################################    
-    # This was a massive learning curve on how to degregister results
-    # when you are looping through a set of host vars
-
-    # might be able to stack the checks into a list, then just 
-    # have the one lot of results to run set facts over??
-
-    
 
     - name: Search for the existance of the code {{inventory_hostname}}
       ios_command:
@@ -42,6 +41,10 @@
       with_items: "{{ groups['ios'] }}"
       register: show_test_b
 
+    ################################################################
+    # Set the variables to resuse later
+    ################################################################
+
     - set_fact:
         config: "{{ hostvars[item]['line1'] }}"
       with_items: "{{ groups['ios'] }}"
@@ -50,14 +53,16 @@
         serno: "{{ hostvars[item]['serno'] }}"
       with_items: "{{ groups['ios'] }}"
 
-    # # Just debug the result from the fact to see what happened
+    ################################################################
+    # Just debug the result from the fact to see what happened
+    ################################################################
     - name: debug
       debug:
-        msg: "Debug output from test a  {{show_test_a.results[0].stdout_lines}}"
+        msg: "Debug output from test a  {{show_test_a.results[0]}}"
 
     - name: debug
       debug:
-        msg: "Debug output from test b  {{show_test_b.results[0].stdout_lines}}"
+        msg: "Debug output from test b  {{show_test_b.results[0]}}"
 
 
     - name: debug
@@ -68,69 +73,47 @@
       debug:
         var: serno
 
-    # - name: Set the fact1 for a match on exists
-    #   set_fact:
-    #     test1_result: "1"
+    ################################################################
+    # Set the results of the above actions, to test with meta handlers
+    ################################################################
+    - name: First test the config
+      set_fact: 
+        test1_result: "1"
 
-    #   with_items: "{{ show_test1.results }}"
-    #   when: 
-    #     - '"{{line1}}" in "{{item.stdout_lines}}"' 
+      when: (config in item)
+      with_items: "{{show_test_a.results[0].stdout}}"
 
-    - name: Set the fact on matching the code we want to push
-      set_fact:
-        config_result: "1"
+    - name: Second test the serial
+      set_fact: 
+        test2_result: "1"
 
-      when: 
-        # This deliminator in jinja is killing me curly brackets example works
-        - (config in show_test_a.results[0].stdout_lines)
-        # - '"{{config}}" in "{{show_test_a.results[0].stdout_lines}}"'
-        # - ("Hello World" in show_test_a.results[0].stdout_lines)
-        # - show_test_a.results[0].find('Hello') != -1
-      # with_indexed_items:
-      #   - "{{show_test_a.results[0].stdout_lines}}"
-
-
-    - name: Set the fact on matching serial number
-      set_fact:
-        serno_result: "1"
-     
-      when: 
-        - serno in show_test_b.results[0].stdout_lines
-        # - '"{{serno}}" in "{{show_test_b.results[0].stdout_lines}}"'
-        # - item.results.find('not installed') != -1
-      # with_indexed_items:
-      #   - "{{show_test_b.results[0].stdout_lines}}"
-
-
-    # Just debug the result from the fact to see what happened
+      when: (serno in item)
+      with_items: "{{show_test_b.results[0].stdout}}"
+    ################################################################
+    # More debugging
+    ################################################################
     - name: debug
       debug:
-        var: config_result
+        var: test1_result
 
     - name: debug
       debug:
-        var: serno_result
+        var: test2_result
+  
 
-    # # This is a nice meta handler, which needs a msg to say 
-    # # we encountered an issue and exited.
-    # # At this point we can stack up the exit conditions with the logic
-    # # in the When statement
+    ################################################################
+    # At this point we can stack up the exit conditions with the logic
+    # in the When statement
+    ################################################################
+
     - meta: end_play
-      when: test1_result is defined
+      when: (test1_result is defined) or (test2_result is not defined)
 
-    - meta: end_play
-      when: test2_result is not defined
+    ################################################################
+    # Push the config here
+    ################################################################   
 
-       
-
-    # ################################################################
-    # # Push the config here
-    # ################################################################   
-    # # Need to work out how to loop over the lines in the host vars.
-    # # As we need to be able to supply a list with a parent.
-    # # Else we just do line1, line2 etc, which might be easier
-
-    - name: Push a set of commands {{ hostvars[item]['line1'] }} {{ hostvars[item]['line2'] }}
+    - name: Push a set of commands
       ios_config:
         provider: "{{ cli }}"
         lines:
@@ -147,11 +130,12 @@
       tags:
         - description
 
+      # Sort of a redundant check, but I will leave it in
       when:
         - test1_result is not defined
 
-    # ################################################################
-    # # backup the config here
-    # ################################################################ 
+    # # ################################################################
+    # # # backup the config here
+    # # ################################################################ 
 
 
