@@ -7,6 +7,7 @@
     cli:
       username: "vagrant"
       password: "vagrant"
+      host: "{{ ansible_ssh_host }}"
 
   tasks:
 
@@ -31,131 +32,135 @@
     # so if you have 3 or 4 lines, you need to be able to loop over them
     # in the one command action
 
-    - name: Search for the existance of the code {{inventory_hostname}}
+    - name: Search for the existance of the code {{ inventory_hostname }} {{ ansible_ssh_host}}
       ios_command:
-        commands: "{{ hostvars[item]['check1'] }}"
+        commands: "{{ check1 }}"
         provider: "{{ cli }}"
       
-      with_items: "{{ groups['ios'] }}"
+      # with_items: "{{ groups['ios'] }}"
       register: show_test_a
 
-    - name: Grab the serial number of {{inventory_hostname}}
-      ios_command:
-        commands: "{{ hostvars[item]['check2'] }}"
-        provider: "{{ cli }}"
+    - name: debug
+      debug:
+        msg: "Debug output from test a  {{show_test_a.stdout}}"
+
+    # - name: Grab the serial number of {{inventory_hostname}}
+    #   ios_command:
+    #     commands: "{{ hostvars[item]['check2'] }}"
+    #     provider: "{{ cli }}"
       
-      with_items: "{{ groups['ios'] }}"
-      register: show_test_b
+    #   with_items: "{{ groups['ios'] }}"
+    #   register: show_test_b
 
-    ################################################################
-    # Set the variables to resuse later
-    ################################################################
+    # ################################################################
+    # # Set the variables to resuse later
+    # ################################################################
 
-    - set_fact:
-        config: "{{ hostvars[item]['line1'] }}"
-      with_items: "{{ groups['ios'] }}"
+    # - set_fact:
+    #     config: "{{ hostvars[item]['line1'] }}"
+    #   with_items: "{{ groups['ios'] }}"
 
-    - set_fact:
-        serno: "{{ hostvars[item]['serno'] }}"
-      with_items: "{{ groups['ios'] }}"
+    # - set_fact:
+    #     serno: "{{ hostvars[item]['serno'] }}"
+    #   with_items: "{{ groups['ios'] }}"
 
-    ################################################################
-    # Just debug the result from the fact to see what happened
-    ################################################################
+    # ################################################################
+    # # Just debug the result from the fact to see what happened
+    # ################################################################
 
-    - name: debug
-      debug:
-        msg: "Debug output from test a  {{show_test_a.results[0]}}"
+    # - name: debug
+    #   debug:
+    #     msg: "Debug output from test a  {{show_test_a.results[0]}}"
 
-    - name: debug
-      debug:
-        msg: "Debug output from test b  {{show_test_b.results[0]}}"
+    # - name: debug
+    #   debug:
+    #     msg: "Debug output from test b  {{show_test_b.results[0]}}"
 
 
-    - name: debug
-      debug:
-        var: config
+    # - name: debug
+    #   debug:
+    #     var: config
 
-    - name: debug
-      debug:
-        var: serno
+    # - name: debug
+    #   debug:
+    #     var: serno
 
-    ################################################################
-    # Set the results of the above actions, to test with meta handlers
-    ################################################################
+    # ################################################################
+    # # Set the results of the above actions, to test with meta handlers
+    # ################################################################
 
-    - name: First test the config
-      set_fact: 
-        test1_result: "1"
+    # - name: First test the config
+    #   set_fact: 
+    #     test1_result: "1"
 
-      when: (config in item)
-      with_items: "{{show_test_a.results[0].stdout}}"
+    #   when: (config in item)
+    #   with_items: "{{show_test_a.results[0].stdout}}"
 
-    - name: Second test the serial
-      set_fact: 
-        test2_result: "1"
+    # - name: Second test the serial
+    #   set_fact: 
+    #     test2_result: "1"
 
-      when: (serno in item)
-      with_items: "{{show_test_b.results[0].stdout}}"
+    #   when: (serno in item)
+    #   with_items: "{{show_test_b.results[0].stdout}}"
 
-    ################################################################
-    # More debugging
-    ################################################################
+    # ################################################################
+    # # More debugging
+    # ################################################################
 
-    - name: debug
-      debug:
-        var: test1_result
+    # - name: debug
+    #   debug:
+    #     var: test1_result
 
-    - name: debug
-      debug:
-        var: test2_result
+    # - name: debug
+    #   debug:
+    #     var: test2_result
   
-    ################################################################
-    # At this point we can stack up the exit conditions with the logic
-    # in the When statement
-    # Turns out the module is idempotent, when you make it all case 
-    # sensitive!!
-    # So can make more host tests and still end with meta, just not
-    # the config
-    ################################################################
+    # ################################################################
+    # # At this point we can stack up the exit conditions with the logic
+    # # in the When statement
+    # # Turns out the module is idempotent, when you make it all case 
+    # # sensitive!!
+    # # So can make more host tests and still end with meta, just not
+    # # the config
+    # ################################################################
 
-    # - meta: end_play
-    #   when: (test1_result is defined) or (test2_result is not defined)
+    # # - meta: end_play
+    # #   when: (test1_result is defined) or (test2_result is not defined)
 
-    ################################################################
-    # Push the config here
-    ################################################################   
+    # ################################################################
+    # # Push the config here
+    # ################################################################   
 
-    - name: Push a set of commands
-      ios_config:
-        provider: "{{ cli }}"
-        lines:
-          - "{{ hostvars[item]['line1'] }}"
-          - "{{ hostvars[item]['line2'] }}"
+    # - name: Push a set of commands
+    #   ios_config:
+    #     provider: "{{ cli }}"
+    #     lines:
+    #       - "{{ hostvars[item]['line1'] }}"
+    #       - "{{ hostvars[item]['line2'] }}"
 
-        parents: "{{ hostvars[item]['parent'] }}"
-        save_when: modified
+    #     parents: "{{ hostvars[item]['parent'] }}"
+    #     save_when: modified
 
-      register: "set_config"
+    #   register: "set_config"
 
-      with_items: "{{ groups['ios'] }}"
-      tags:
-        - description
+    #   with_items: "{{ groups['ios'] }}"
+    #   tags:
+    #     - description
 
-      # Sort of a redundant check, but I will leave it in
-      when:
-        - test1_result is not defined
+    #   # Sort of a redundant check, but I will leave it in
+    #   when:
+    #     - test1_result is not defined
 
-    ################################################################
-    # Push the config here
-    ################################################################  
+    # ################################################################
+    # # Push the config here
+    # ################################################################  
 
-    - name: debug
-      debug:
-        var: set_config
+    # - name: debug
+    #   debug:
+    #     var: set_config
 
-    # # ################################################################
-    # # # backup the config here
-    # # ################################################################ 
+    # # # ################################################################
+    # # # # backup the config here
+    # # # ################################################################ 
 
 
