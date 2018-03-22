@@ -113,10 +113,14 @@
     ################################################################
     # At this point we can stack up the exit conditions with the logic
     # in the When statement
+    # Turns out the module is idempotent, when you make it all case 
+    # sensitive!!
+    # So can make more host tests and still end with meta, just not
+    # the config
     ################################################################
 
-    - meta: end_play
-      when: (test1_result is defined) or (test2_result is not defined)
+    # - meta: end_play
+    #   when: (test1_result is defined) or (test2_result is not defined)
 
     ################################################################
     # Push the config here
@@ -141,7 +145,7 @@
       # Sort of a redundant check, but I will leave it in
       when:
         - test1_result is not defined
-        
+
     ################################################################
     # Push the config here
     ################################################################  
@@ -149,6 +153,7 @@
     - name: debug
       debug:
         var: set_config
+
     # # ################################################################
     # # # backup the config here
     # # ################################################################ 
