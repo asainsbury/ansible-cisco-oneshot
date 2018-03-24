@@ -4,13 +4,18 @@
   connection: local
 
   vars:
+    run_tests: "yes"
     cli:
       username: "vagrant"
       password: "vagrant"
       host: "{{ ansible_ssh_host }}"
+    tests:
+      inventory: "show inventory | i SN"
+      version: "show version | i Version"
+      hostname: "show run | i hostname"
+      
 
   tasks:
-
     # ----
     # TODO
     # ----
@@ -26,95 +31,42 @@
     ################################################################
     # Run tests first - any issues we exit the play
     ################################################################ 
-    # Might be able to stack the commands
-    # and just register all the commands together?
-    # thats also on the todo list
-    # so if you have 3 or 4 lines, you need to be able to loop over them
-    # in the one command action
 
-    - name: Search for the existance of the code {{ inventory_hostname }} {{ ansible_ssh_host}}
+    - name: Gather some custom facts {{ inventory_hostname }} {{ ansible_ssh_host}}
       ios_command:
-        commands: "{{ check1 }}"
+        commands: 
+          - "{{tests['inventory']}}"
+          - "{{tests['version']}}"
+          - "{{tests['hostname']}}"
+
         provider: "{{ cli }}"
-      
-      # with_items: "{{ groups['ios'] }}"
-      register: show_test_a
+      register: run_tests
+      when: ("yes" in run_tests)
 
-    - name: debug
+    - name: Print the tests 
       debug:
-        msg: "Debug output from test a  {{show_test_a.stdout}}"
-
-    # - name: Grab the serial number of {{inventory_hostname}}
-    #   ios_command:
-    #     commands: "{{ hostvars[item]['check2'] }}"
-    #     provider: "{{ cli }}"
-      
-    #   with_items: "{{ groups['ios'] }}"
-    #   register: show_test_b
-
-    # ################################################################
-    # # Set the variables to resuse later
-    # ################################################################
-
-    # - set_fact:
-    #     config: "{{ hostvars[item]['line1'] }}"
-    #   with_items: "{{ groups['ios'] }}"
-
-    # - set_fact:
-    #     serno: "{{ hostvars[item]['serno'] }}"
-    #   with_items: "{{ groups['ios'] }}"
-
-    # ################################################################
-    # # Just debug the result from the fact to see what happened
-    # ################################################################
-
-    # - name: debug
-    #   debug:
-    #     msg: "Debug output from test a  {{show_test_a.results[0]}}"
-
-    # - name: debug
-    #   debug:
-    #     msg: "Debug output from test b  {{show_test_b.results[0]}}"
-
-
-    # - name: debug
-    #   debug:
-    #     var: config
-
-    # - name: debug
-    #   debug:
-    #     var: serno
-
+        var: run_tests
+      when: run_tests is defined 
+    
     # ################################################################
     # # Set the results of the above actions, to test with meta handlers
     # ################################################################
 
-    # - name: First test the config
-    #   set_fact: 
-    #     test1_result: "1"
+    - name: Check results of the tests in one task
+      set_fact: 
+        test_combo_result: "1"
 
-    #   when: (config in item)
-    #   with_items: "{{show_test_a.results[0].stdout}}"
-
-    # - name: Second test the serial
-    #   set_fact: 
-    #     test2_result: "1"
-
-    #   when: (serno in item)
-    #   with_items: "{{show_test_b.results[0].stdout}}"
+      when: ("serno in item" and "type in item" and "inventory_hostname in item")
+      with_items: "{{run_tests.stdout}}"
 
     # ################################################################
     # # More debugging
     # ################################################################
 
-    # - name: debug
-    #   debug:
-    #     var: test1_result
-
-    # - name: debug
-    #   debug:
-    #     var: test2_result
-  
+    - name: debug 
+      debug:
+        var: test_combo_result
+ 
     # ################################################################
     # # At this point we can stack up the exit conditions with the logic
     # # in the When statement
@@ -124,40 +76,36 @@
     # # the config
     # ################################################################
 
-    # # - meta: end_play
-    # #   when: (test1_result is defined) or (test2_result is not defined)
+    - meta: end_play
+      when: (test_combo_result is not defined)
 
     # ################################################################
-    # # Push the config here
+    # # Attempt to push the config here
     # ################################################################   
 
-    # - name: Push a set of commands
-    #   ios_config:
-    #     provider: "{{ cli }}"
-    #     lines:
-    #       - "{{ hostvars[item]['line1'] }}"
-    #       - "{{ hostvars[item]['line2'] }}"
+    - name: Push a set of commands
+      ios_config:
+        provider: "{{ cli }}"
+        lines:
+          - "{{ hostvars[item]['line1'] }}"
+          - "{{ hostvars[item]['line2'] }}"
 
-    #     parents: "{{ hostvars[item]['parent'] }}"
-    #     save_when: modified
+        parents: "{{ hostvars[item]['parent'] }}"
+        save_when: modified
 
-    #   register: "set_config"
+      register: "set_config"
 
-    #   with_items: "{{ groups['ios'] }}"
-    #   tags:
-    #     - description
-
-    #   # Sort of a redundant check, but I will leave it in
-    #   when:
-    #     - test1_result is not defined
+      with_items: "{{ groups['ios'] }}"
+      tags:
+        - description
 
     # ################################################################
     # # Push the config here
     # ################################################################  
 
-    # - name: debug
-    #   debug:
-    #     var: set_config
+    - name: debug
+      debug:
+        var: set_config
 
     # # # ################################################################
     # # # # backup the config here
