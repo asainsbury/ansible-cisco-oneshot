@@ -1,2 +1,3 @@
-[ios]
-csr1 ansible_ssh_host=127.0.0.1 ansible_ssh_port=2221 serno="9HGPHTOFJIH" type="IOS" parent="interface GigabitEthernet1" line1="description Hello World" line2="ip address dhcp"
+---
+[oneshot]
+csr1 ansible_ssh_host="127.0.0.1" ansible_ssh_port="2221" serno="9HGPHTOFJIH" type="IOS" parent="interface GigabitEthernet1" line1="description Hello World" line2="ip address dhcp"

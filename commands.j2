@@ -1,0 +1,10 @@
+---
+{# inventory_hostname;ansible_ssh_host;ansible_ssh_port;serno;type;parent;line1;line2 #}
+{# csr1;127.0.0.1;2221;9HGPHTOFJIH;IOS;interface GigabitEthernet1;description Hello World;ip address dhcp #}
+[oneshot]
+{% for item in csvfile.split("\n") %}
+{# {%   if loop.index != 1 %} #}
+{%     set list = item.split(";") %}
+{{ list[0]|trim() }} ansible_ssh_host="{{ list[1]|trim() }}" ansible_ssh_port="{{ list[2]|trim() }}" serno="{{ list[3]|trim() }}" type="{{ list[4]|trim() }}" parent="{{ list[5]|trim() }}" line1="{{ list[6]|trim() }}" line2="{{ list[7]|trim() }}"
+{# {%   endif %} #}
+{% endfor %}

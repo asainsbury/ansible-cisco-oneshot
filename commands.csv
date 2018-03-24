@@ -1,2 +1,1 @@
-host;ansible_ssh_host;os;serno;check1;check2;check3;parent;lines;
-csr1;192.168.178.85;IOS;9HGPHTOFJIH;"show inventory";"show run | i hostname";show run interface gigabitEthernet1";"interface gigabitEthernet4";["description Hello World","ip address 1.1.1.1 255.255.255.0"]
+csr1;127.0.0.1;2221;9HGPHTOFJIH;IOS;interface GigabitEthernet1;description Hello World;ip address dhcp

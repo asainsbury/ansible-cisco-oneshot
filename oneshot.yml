@@ -1,5 +1,5 @@
 ---
-- hosts: ios
+- hosts: oneshot
   gather_facts: false
   connection: local
 
@@ -23,10 +23,12 @@
     # Taken from extra vars, not run everytime
     # Add a debug option, again from extra vars and add to all debugs
     # Add tags to all tasks
-    # Add option to backup before a change
+    # Add option to backup before a change (backup role)
     # Add option to backup after a change
     # Make it NXOS or IOS/XE agnostic 
     # Turn into a role at this point
+        # supply path to the csv
+        # again with option to generate the file or not
 
     ################################################################
     # Run tests first - any issues we exit the play
@@ -95,7 +97,7 @@
 
       register: "set_config"
 
-      with_items: "{{ groups['ios'] }}"
+      with_items: "{{ groups['oneshot'] }}"
       tags:
         - description
 
