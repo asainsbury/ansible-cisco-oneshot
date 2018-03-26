@@ -1,11 +1,11 @@
-# ansible-ios-oneshot: A oneshot config push for the time poor Network Engineer
+# ansible-ios-oneshot
 
 > # **one-shot**
 > adjective NORTH AMERICAN informal\
 > achieved with a single attempt or action.\
 > "there is no one-shot solution to the problem"\
 > done, produced, or occurring only once.\
-> "a one-shot deal"\
+> "a one-shot deal"
 
 The playbook takes the input from a csv file containing hosts and commands, and converts it into a host inventory file which is used to push config out on mass. 
 
