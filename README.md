@@ -27,7 +27,7 @@ Most of the above will need to be broken out into roles, but that will come at a
 This play is work in progress, so not all of the features are complete.
 
 `ansible-playbook oneshot.yml -vv --tags "gen_hosts"`\
-`ansible-playbook oneshot.yml`\
+`ansible-playbook oneshot.yml`
 
 ## CSV Format
 inventory_hostname| ansible_ssh_host | ansible_ssh_port | serno | type | parent | line1 | line2
