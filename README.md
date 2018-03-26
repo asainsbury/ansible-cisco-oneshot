@@ -1,5 +1,12 @@
 # ansible-ios-oneshot
 
+> one-shot
+> adjectiveNORTH AMERICANinformal
+> achieved with a single attempt or action.
+> "there is no one-shot solution to the problem"
+> done, produced, or occurring only once.
+> "a one-shot deal"
+
 A playbook which you supply hostnames and config, to push out config once on bulk.
 
 All the data is static to my development environment but you can use this as an example of the logic.

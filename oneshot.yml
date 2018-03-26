@@ -23,20 +23,28 @@
       hostname: "show run | i hostname"
       
   tasks:
-    # ----
-    # TODO
-    # ----
+    
+    # TODO:
+
     # Make sure not to overwrite other config
+      # Currently just pushes the config no matter what
+      # Should run the play in check mode first to see what happens
+
     # Extra vars
+      # All those inputs need to be able to be passed in
+      # defaults set if no entered
+
     # Add option to backup before a change (backup role)
     # Add option to backup after a change
+
     # Make it NXOS or IOS/XE agnostic 
+
     # Turn into a role at this point
-        # supply path to the csv
-        # again with option to generate the file or not
+      # Need the version pre supplied
+      # OS needed to make decision on nxos or ios config modules
 
     ################################################################
-    # Static parse of csv file to YAML host inventory
+    # Parse of csv file to YAML host inventory
     ################################################################ 
 
     - name: Parse CSV To YAML
@@ -44,7 +52,7 @@
         src: "{{scr}}"
         dest: "{{dst}}"
       run_once: true
-      tag:
+      tags:
         - gen_hosts
 
     ################################################################
@@ -123,7 +131,7 @@
         - push_config
 
     # ################################################################
-    # # Push the config here
+    # # Debug the config here
     # ################################################################  
 
     - name: debug
@@ -131,8 +139,8 @@
         var: set_config
       when: show_debug == "yes"
 
-    # # # ################################################################
-    # # # # backup the config here
-    # # # ################################################################ 
+    #################################################################
+    # backup the config here - tftp or scp??
+    ################################################################# 
 
 
