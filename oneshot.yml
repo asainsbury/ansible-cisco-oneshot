@@ -5,6 +5,7 @@
 
   vars:
     run_tests: "yes"
+    show_debug: "no"
 
     filename: "commands.csv"
     csvfile: "{{ lookup('file', '{{filename}}') }}"
@@ -26,9 +27,7 @@
     # TODO
     # ----
     # Make sure not to overwrite other config
-    # Taken from extra vars, not run everytime
-    # Add a debug option, again from extra vars and add to all debugs
-    # Add tags to all tasks
+    # Extra vars
     # Add option to backup before a change (backup role)
     # Add option to backup after a change
     # Make it NXOS or IOS/XE agnostic 
@@ -45,6 +44,8 @@
         src: "{{scr}}"
         dest: "{{dst}}"
       run_once: true
+      tag:
+        - gen_hosts
 
     ################################################################
     # Run tests first - any issues we exit the play
@@ -61,10 +62,13 @@
       register: run_tests
       when: ("yes" in run_tests)
 
+      tags:
+        - gather_facts
+
     - name: Print the tests 
       debug:
         var: run_tests
-      when: run_tests is defined 
+      when: show_debug == "yes"
     
     # ################################################################
     # # Set the results of the above actions, to test with meta handlers
@@ -84,6 +88,7 @@
     - name: debug 
       debug:
         var: test_combo_result
+      when: show_debug == "yes"
  
     # ################################################################
     # # At this point we can stack up the exit conditions with the logic
@@ -115,7 +120,7 @@
 
       with_items: "{{ groups['oneshot'] }}"
       tags:
-        - description
+        - push_config
 
     # ################################################################
     # # Push the config here
@@ -124,6 +129,7 @@
     - name: debug
       debug:
         var: set_config
+      when: show_debug == "yes"
 
     # # # ################################################################
     # # # # backup the config here
