@@ -1,15 +1,11 @@
-# ansible-ios-oneshot
+# ansible-ios-oneshot: A oneshot config push for the time poor Network Engineer
 
 > # **one-shot**
-> adjective NORTH AMERICAN informal
-> achieved with a single attempt or action.
-> "there is no one-shot solution to the problem"
-> done, produced, or occurring only once.
-> "a one-shot deal"
-
-- A oneshot config push for the time poor Network Engineer.
-- Skill level required: minimal.
-- Awesomness: desireable.
+> adjective NORTH AMERICAN informal\
+> achieved with a single attempt or action.\
+> "there is no one-shot solution to the problem"\
+> done, produced, or occurring only once.\
+> "a one-shot deal"\
 
 The playbook takes the input from a csv file containing hosts and commands, and converts it into a host inventory file which is used to push config out on mass. 
 
@@ -30,8 +26,8 @@ Most of the above will need to be broken out into roles, but that will come at a
 ## Example of how to run
 This play is work in progress, so not all of the features are complete.
 
-`ansible-playbook oneshot.yml -vv --tags "gen_hosts"`
-`ansible-playbook oneshot.yml`
+`ansible-playbook oneshot.yml -vv --tags "gen_hosts"`\
+`ansible-playbook oneshot.yml`\
 
 ## CSV Format
 inventory_hostname| ansible_ssh_host | ansible_ssh_port | serno | type | parent | line1 | line2
