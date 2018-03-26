@@ -5,21 +5,27 @@
 
   vars:
     run_tests: "yes"
+
+    filename: "commands.csv"
+    csvfile: "{{ lookup('file', '{{filename}}') }}"
+    scr: "./commands.j2"
+    dst: "./hosts"
+
     cli:
       username: "vagrant"
       password: "vagrant"
       host: "{{ ansible_ssh_host }}"
+    
     tests:
       inventory: "show inventory | i SN"
       version: "show version | i Version"
       hostname: "show run | i hostname"
       
-
   tasks:
     # ----
     # TODO
     # ----
-    # Aim to make the inventory file from jinja2
+    # Make sure not to overwrite other config
     # Taken from extra vars, not run everytime
     # Add a debug option, again from extra vars and add to all debugs
     # Add tags to all tasks
@@ -31,9 +37,19 @@
         # again with option to generate the file or not
 
     ################################################################
-    # Run tests first - any issues we exit the play
+    # Static parse of csv file to YAML host inventory
     ################################################################ 
 
+    - name: Parse CSV To YAML
+      template:
+        src: "{{scr}}"
+        dest: "{{dst}}"
+      run_once: true
+
+    ################################################################
+    # Run tests first - any issues we exit the play
+    ################################################################ 
+    
     - name: Gather some custom facts {{ inventory_hostname }} {{ ansible_ssh_host}}
       ios_command:
         commands: 
